@@ -1,0 +1,76 @@
+const notesContainer = document.getElementById("app");
+const addNoteButton = notesContainer.querySelector(".newnote");
+
+getNotes().forEach((note) => {
+    const noteElement = createNoteElement(note.id, note.content);
+    notesContainer.insertBefore(noteElement, addNoteButton);
+});
+
+addNoteButton.addEventListener("click", () => addNote());
+
+/* retrieves existing notes from local storage */
+function getNotes () {
+    /* gets notes stored inside local storage unless empty */
+    return JSON.parse(localStorage.getItem("stickynotes-notes") || "[]");
+}
+
+/* saves new notes in local storage*/
+function saveNotes (notes) {
+    localStorage.setItem("stickynotes-notes", JSON.stringify(notes));
+}
+
+function createNoteElement (id, content) {
+    const element = document.createElement("textarea");
+
+    /* add .note class to element */
+    element.classList.add("note");
+    
+    element.value = content;
+    element.placeholder = "empty note";
+
+    element.addEventListener("change", () => {
+        updateNote(id, element.value);
+    });
+
+    element.addEventListener("dblclick", () => {
+        const doDelete = confirm (
+            "Are you sure you want to delete this note?"
+        );
+    
+
+        if (doDelete) {
+        deleteNote(id, element);
+        }
+    });
+    return element;
+}
+
+function addNote () {
+    /* get notes array and add new notes and save new array*/
+    const notes = getNotes();
+    const noteObject = {
+        id: Math.floor(Math.random() * 100000),
+        content: ""
+    };
+
+    const noteElement = createNoteElement(noteObject.id, noteObject.content);
+    notesContainer.insertBefore(noteElement, addNoteButton);
+
+    notes.push(noteObject);
+    saveNotes(notes);
+}
+
+function updateNote (id, newContent) {
+    const notes = getNotes();
+    const targetNote = notes.filter((note) => note.id == id) [0];
+
+    targetNote.content = newContent;
+    saveNotes(notes);
+}
+
+function deleteNote (id, element) {
+    const notes = getNotes().filter((note) => note.id != id);
+
+    saveNotes(notes);
+    notesContainer.removeChild(element);
+}
